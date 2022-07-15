@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 
-const port = 81; // react의 기본값은 3000이니까 3000이 아닌 아무 수
+const port = 22; // react의 기본값은 3000이니까 3000이 아닌 아무 수
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const mysql = require("mysql"); // mysql 모듈 사용
