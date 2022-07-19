@@ -1,7 +1,33 @@
 const express = require("express");
+
+const http = require("http");
+const https = require("https");
+const fs = require("fs");
+
+const HTTP_PORT = 8080;
+const HTTPS_PORT = 8443;
+
+const options = {
+  key: fs.readFileSync("./_key.pem", "utf-8"),
+  cert: fs.readFileSync("./_crt.pem", "utf-8"),
+};
+
+https
+  .createServer(
+    {
+      key: fs.readFileSync("./_key.pem", "utf-8"),
+      cert: fs.readFileSync("./_crt.pem", "utf-8"),
+    },
+    function (req, res) {
+      res.write("Congrats! You made https server now :)");
+      res.end();
+    }
+  )
+  .listen(3001);
+
 const app = express();
 
-const port = 3306; // react의 기본값은 3000이니까 3000이 아닌 아무 수
+const port = 3307; // react의 기본값은 3000이니까 3000이 아닌 아무 수
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const mysql = require("mysql"); // mysql 모듈 사용
@@ -27,7 +53,9 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.get("/", (req, res) => {
-  res.send("hello world!");
+  res.json({
+    message: `Server is running on port ${req.secure ? HTTPS_PORT : HTTP_PORT}`,
+  });
 });
 
 app.post("/SQL1", (req, res) => {
@@ -58,6 +86,9 @@ app.post("/SQL2", (req, res) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Connect at http://asdf:${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Connect at http://asdf:${port}`);
+// });
+
+// http.createServer(app).listen(HTTP_PORT);
+// https.createServer(options, app).listen(HTTPS_PORT);
