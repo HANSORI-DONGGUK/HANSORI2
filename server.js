@@ -1,40 +1,41 @@
 const express = require("express");
-
 const http = require("http");
 const https = require("https");
 const fs = require("fs");
+const cors = require("cors");
 
 const HTTP_PORT = 8080;
 const HTTPS_PORT = 8443;
 
 const options = {
-  key: fs.readFileSync("./_key.pem", "utf-8"),
-  cert: fs.readFileSync("./_crt.pem", "utf-8"),
+  key: fs.readFileSync("./_key.pem"),
+  cert: fs.readFileSync("./_crt.pem"),
 };
-
-https
-  .createServer(
-    {
-      key: fs.readFileSync("./_key.pem", "utf-8"),
-      cert: fs.readFileSync("./_crt.pem", "utf-8"),
-    },
-    function (req, res) {
-      res.write("Congrats! You made https server now :)");
-      res.end();
-    }
-  )
-  .listen(3001);
 
 const app = express();
 
-const port = 3307; // react의 기본값은 3000이니까 3000이 아닌 아무 수
-const cors = require("cors");
+let corsOptions = {
+  origin: "*", // 출처 허용 옵션
+  credential: true, // 사용자 인증이 필요한 리소스(쿠키 ..등) 접근
+};
+
+app.use(cors(corsOptions));
+
+// Default route for server status
+app.get("/", (req, res) => {
+  res.json({
+    message: `Server is running on port ${req.secure ? HTTPS_PORT : HTTP_PORT}`,
+  });
+});
+
+// Create an HTTP server.
+http.createServer(app).listen(HTTP_PORT);
+
+// Create an HTTPS server.
+https.createServer(options, app).listen(HTTPS_PORT);
+
 const bodyParser = require("body-parser");
 const mysql = require("mysql"); // mysql 모듈 사용
-
-const path = require("path");
-
-const multer = require("multer");
 
 var connection = mysql.createConnection({
   host: "125.6.40.93",
@@ -50,18 +51,13 @@ connection.connect();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors());
-
-app.get("/", (req, res) => {
-  res.json({
-    message: `Server is running on port ${req.secure ? HTTPS_PORT : HTTP_PORT}`,
-  });
-});
 
 app.post("/SQL1", (req, res) => {
   const post = req.body.query;
 
   connection.query(post, function (err, rows, fields) {
+    res.setHeader("Access-Control-Allow-origin", "*");
+
     if (err) {
       console.log("전송 실패");
     } else {
@@ -73,6 +69,7 @@ app.post("/SQL1", (req, res) => {
 });
 
 app.post("/SQL2", (req, res) => {
+  console.log("sddddd");
   const post = req.body.query;
 
   connection.query(post, function (err, rows, fields) {
@@ -85,10 +82,3 @@ app.post("/SQL2", (req, res) => {
     }
   });
 });
-
-// app.listen(port, () => {
-//   console.log(`Connect at http://asdf:${port}`);
-// });
-
-// http.createServer(app).listen(HTTP_PORT);
-// https.createServer(options, app).listen(HTTPS_PORT);
